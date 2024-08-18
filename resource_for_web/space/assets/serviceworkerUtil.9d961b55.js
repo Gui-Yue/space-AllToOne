@@ -1,0 +1,1 @@
+import{y as o}from"./index.0601cc40.js";function t(e){navigator.serviceWorker&&(navigator.serviceWorker.controller&&navigator.serviceWorker.controller.postMessage(e),navigator.serviceWorker.ready.then(r=>{console.log(r),r.active&&r.active.postMessage(e)}))}function s(e){e||(e=o()),t({type:"aesKeyAndIv",data:{cryptojsIv:e.cryptojsIv,key:e.key,rawIv:e.rawIv}})}export{s};
