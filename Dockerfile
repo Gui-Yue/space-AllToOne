@@ -283,7 +283,9 @@ RUN wget https://openresty.org/download/openresty-1.21.4.4.tar.gz \
 RUN rm -rf openresty-*
 ENV PATH=/usr/local/openresty/bin:$PATH
 
-# install services
+# aospace-redis
+RUN apt-get update -y \
+    && apt-get install redis-server postgresql-client -y
 
 # space-filepreview
 # python project no installation required
