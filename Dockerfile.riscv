@@ -135,7 +135,8 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN cd space-postgresql; \
+RUN rm space-postgresql/*.sh && cp resource_for_postgresql/*.sh space-postgresql; \
+    cd space-postgresql; \
     dos2unix -k update-pg-password.sh docker-entrypoint.sh eulixspace_pgsql_init.sh
 
 RUN mkdir object-binary/space-postgresql; \
