@@ -1,0 +1,19 @@
+version: '2.4'
+
+services:
+  unified-service:
+    container_name: alltooneImage
+    image: local/alltooneImage:v1.0.0
+    ports:
+      - "80:80"
+      - "443:443"
+      - "5432:5432"
+      - "6379:6379"
+      - "3001:3001"
+      - "2001:2001"
+      - "8080:8080"
+    volumes:
+      - /home/eulixspace_file_storage/parts:/data
+      - /opt/eulixspace/image:/headimage
+      - /etc/ao-space/meta/shared:/shared
+    restart: always
