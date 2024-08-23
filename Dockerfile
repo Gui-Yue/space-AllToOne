@@ -133,8 +133,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN rm space-postgresql/*.sh && cp resource_for_postgresql/*.sh space-postgresql; \
-    cd space-postgresql; \
+RUN cd space-postgresql; \
     dos2unix -k update-pg-password.sh docker-entrypoint.sh eulixspace_pgsql_init.sh
 
 RUN mkdir object-binary/space-postgresql; \
@@ -270,6 +269,7 @@ RUN apt-get update \
 # space-postgresql
 RUN apt-get update \
     && apt-get install postgresql postgresql-contrib
+RUN ln -s /usr/lib/postgresql/16/bin/pg_ctl /usr/local/bin/pg_ctl
 
 # space-web
 RUN apt-get update \
@@ -332,15 +332,15 @@ COPY --from=builder1 /work/object-binary/space-agent/aospace /usr/local/bin/aosp
 COPY --from=builder1 /work/object-binary/space-agent/supervisord.conf /etc/supervisor/supervisord.conf
 
 # 配置 PostgreSQL
-RUN service postgresql start && \
-    su - postgres -c "psql -c \"ALTER USER postgres PASSWORD 'placeholder_mysecretpassword';\""
+# RUN service postgresql start && \
+#    su - postgres -c "psql -c \"ALTER USER postgres PASSWORD 'placeholder_mysecretpassword';\""
 
 # 设置启动脚本
-COPY start.sh /usr/local/bin/start.sh
-RUN chmod +x /usr/local/bin/start.sh
+# COPY start.sh /usr/local/bin/start.sh
+# RUN chmod +x /usr/local/bin/start.sh
 
 # 暴露必要的端口
 EXPOSE 80 443 5432 6379 3001 2001 8080
 
 # 使用启动脚本作为入口点
-ENTRYPOINT ["/usr/local/bin/start.sh"]
+# ENTRYPOINT ["/usr/local/bin/start.sh"]
