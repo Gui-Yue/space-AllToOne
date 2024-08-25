@@ -304,6 +304,9 @@ COPY --from=builder1 /work/object-binary/space-media-vod/nginx /usr/local/nginx
 COPY --from=builder1 /work/object-binary/space-media-vod/nginx.conf /usr/local/nginx/conf/nginx.conf
 
 # space-gateway
+USER root
+ENV JAVA_OPTS="-Duser.timezone=GMT+8 -Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
 COPY --chown=1001 --from=builder1 /work/object-binary/space-gateway/target/quarkus-app/lib/ /deployments/lib/
 COPY --chown=1001 --from=builder1 /work/object-binary/space-gateway/target/quarkus-app/*.jar /deployments/
 COPY --chown=1001 --from=builder1 /work/object-binary/space-gateway/target/quarkus-app/app/ /deployments/app/
@@ -331,16 +334,13 @@ RUN chmod +x /docker-entrypoint.sh
 COPY --from=builder1 /work/object-binary/space-agent/aospace /usr/local/bin/aospace
 COPY --from=builder1 /work/object-binary/space-agent/supervisord.conf /etc/supervisor/supervisord.conf
 
-# 配置 PostgreSQL
-# RUN service postgresql start && \
-#    su - postgres -c "psql -c \"ALTER USER postgres PASSWORD 'placeholder_mysecretpassword';\""
 
 # 设置启动脚本
-# COPY start.sh /usr/local/bin/start.sh
-# RUN chmod +x /usr/local/bin/start.sh
+COPY start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
 
 # 暴露必要的端口
-EXPOSE 80 443 5432 6379 3001 2001 8080
+EXPOSE 80 443 5432 6379 3001 2001 8080 5678
 
 # 使用启动脚本作为入口点
-# ENTRYPOINT ["/usr/local/bin/start.sh"]
+ENTRYPOINT ["/usr/local/bin/start.sh"]

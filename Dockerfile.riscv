@@ -313,6 +313,9 @@ COPY --from=builder1 /work/object-binary/space-media-vod/nginx /usr/local/nginx
 COPY --from=builder1 /work/object-binary/space-media-vod/nginx.conf /usr/local/nginx/conf/nginx.conf
 
 # space-gateway
+USER root
+ENV JAVA_OPTS="-Duser.timezone=GMT+8 -Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
 COPY --chown=1001 --from=builder1 /work/object-binary/space-gateway/deployments /deployments
 
 # space-postgresql
