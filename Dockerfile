@@ -336,7 +336,7 @@ COPY --from=builder1 /work/object-binary/space-agent/supervisord.conf /etc/super
 
 
 # 设置启动脚本
-COPY start.sh /usr/local/bin/start.sh
+COPY --from=builder1 /work/start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
 # 暴露必要的端口
