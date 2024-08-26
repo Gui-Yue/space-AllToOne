@@ -1,12 +1,13 @@
-version: '2.4'
+version: '3.3'
 
 services:
   aospace:
     privileged: true
+    image: localhost/aospace-all-in-one:v1.0.0
     container_name: aospace-all-in-one
     restart: always
     ports:
-      - "127.0.0.1:placeholder_6379:6379"
+      - "127.0.0.1:6379:6379"
       - "127.0.0.1:2001:2001"
       - "127.0.0.1:8080:8080"
       - "12841:80"
@@ -15,6 +16,7 @@ services:
       - "5678:5678"
       - "127.0.0.1:5680:5680"
     environment:
+      DATADIR: /home/debian/aospace
       POSTGRES_PASSWORD: placeholder_mysecretpassword
       POSTGRES_USER: postgres
       POSTGRES_FILEDB: file
@@ -49,7 +51,7 @@ services:
       SENTRY_ENVIRONMENT: release
       DISK_INFO_FILE_NAME: "disk_info.json"
       DISK_PART_FOLDER_PREFIX: "ao_part_"
-      APP_BOX_DEPLOY_METHOD: DockerBox # agent 以 docker方式 运行在 PC 上
+      APP_BOX_DEPLOY_METHOD: DockerBox
       ACCOUNT_URL: http://localhost:8080
       RADICALE: http://root:root@localhost:5232/root/
       APP_BOX_PUBLIC_KEY_LOCATION: /etc/ao-space/box_key_pub.pem
@@ -71,10 +73,9 @@ services:
       AOSPACE_DATADIR: ${DATADIR}
       RUN_NETWORK_MODE: host
     volumes:
-      - /home/eulixspace_link/postgresql/data:/data
-      - /home/eulixspace_link/redis/data:/data
-      - /home/eulixspace_file_storage/parts:/data
-      - /home/eulixspace_file_storage/parts:/data  # 在多块磁盘间存储
+      - /home/eulixspace_link/postgresql/data:/data/postgresql
+      - /home/eulixspace_link/redis/data:/data/redis
+      - /home/eulixspace_file_storage/parts:/data/storage
       - /opt/eulixspace/image:/headimage
       - /etc/ao-space/meta/shared:/shared
       - /home/eulixspace_file_storage/parts/ao_part_dummy/dav/cards/collections/collection-root/root:/addressbook
@@ -86,25 +87,18 @@ services:
       - /opt/eulixspace/image:/opt/eulixspace/image
       - /opt/eulixspace/applet:/opt/eulixspace/applet
       - /etc/ao-space/meta/admin:/opt/eulixspace/data
-      - /opt/eulixspace-web/space/applet/:/opt/eulixspace-web/space/applet/  
-      - /opt/eulixspace/image:/opt/eulixspace/image
       - /opt/eulixspace-web/space/applet/:/opt/eulixspace-web/space/applet/
       - /home/eulixspace_link/nginx/conf.d:/etc/nginx/conf.d
       - /etc/ao-space/certs:/etc/nginx/certs
       - /home/eulixspace_file_storage/parts:/home/eulixspace/data
-      - ${DATADIR}:/aospace
+      - ${DATADIR}/aospace
       - /var/run/docker.sock:/var/run/docker.sock:ro
-
-
-
-
-aonetwork-client:
-  container_name: aonetwork-client
-  image: registry.ao.space/ao-space/gt:client-v2.0.7
-  restart: always
-  volumes:
-    - /etc/ao-space/gt:/opt/config
-
+  aonetwork-client:
+    container_name: aonetwork-client
+    image: ghcr.io/ao-space/gt:client-v2.2.3
+    restart: always
+    volumes:
+      - /etc/ao-space/gt:/opt/config
 
 networks:
   default:
