@@ -3,8 +3,8 @@ version: '3.3'
 services:
   aospace:
     privileged: true
-    image: localhost/aospace-all-in-one:v1.0.0
-    container_name: aospace-all-in-one
+    image: localhost/aospace-single:v1.0.0
+    container_name: aospace-single
     restart: always
     ports:
       - "127.0.0.1:6379:6379"
@@ -16,7 +16,7 @@ services:
       - "5678:5678"
       - "127.0.0.1:5680:5680"
     environment:
-      DATADIR: /home/debian/aospace
+    # postresql environment setting
       POSTGRES_PASSWORD: placeholder_mysecretpassword
       POSTGRES_USER: postgres
       POSTGRES_FILEDB: file
@@ -24,22 +24,27 @@ services:
       POSTGRES_GATEWAYDB: gateway
       POSTGRES_ACCOUNTDB: account
       PGDATA: /data
-      REDIS_HOST: aospace-redis
+
+      REDIS_HOST: localhost
       REDIS_PORT: 6379
       REDIS_PASSWORD: "placeholder_mysecretpassword"
+
       BUCKET_SOURCE: "eulixspace-files"
       BUCKET_TARGET: "eulixspace-files-processed"
       ROOT_DATA_DIR: "/data/"
       LIBREOFFICE_PROCESS_TIMEOUT: 900
       DEBUG_MODE: 1
+
       SQL_DATABASE: file
-      SQL_HOST: aospace-postgresql
+      SQL_HOST: localhost
       SQL_PORT: 5432
       SQL_USER: postgres
       SQL_PASSWORD: placeholder_mysecretpassword
-      REDIS_URL: aospace-redis:6379
+
+      REDIS_URL: localhost:6379
       REDIS_PASS: placeholder_mysecretpassword
       DATA_PATH: /data/
+
       NOTIFY_AMQP_URL: "amqp://root:mysecretpassword@localhost:5672"
       NOTIFY_QUEUE_NAME: fileChangelogs
       NOTIFY_AMQP_ENABLE: "on"
@@ -70,29 +75,9 @@ services:
       MAX_INVITE_MEMBER_COUNT: 9
       APP_INTERNET_SERVICE_CONFIG: /etc/ao-space/internet_service_config.json
       APP_RUN_NETWORK_MODE: bridge
-      AOSPACE_DATADIR: ${DATADIR}
       RUN_NETWORK_MODE: host
-    volumes:
-      - /home/eulixspace_link/postgresql/data:/data/postgresql
-      - /home/eulixspace_link/redis/data:/data/redis
-      - /home/eulixspace_file_storage/parts:/data/storage
-      - /opt/eulixspace/image:/headimage
-      - /etc/ao-space/meta/shared:/shared
-      - /home/eulixspace_file_storage/parts/ao_part_dummy/dav/cards/collections/collection-root/root:/addressbook
-      - /opt/eulix:/opt/eulix
-      - /etc/ao-space:/etc/ao-space
-      - /home/eulixspace_file_storage/parts/ao_part_dummy/eulixspace-files:/eulixspace-data
-      - /etc/ao-space/meta/shared:/data/shared
-      - /opt/logs/gateway:/logs
-      - /opt/eulixspace/image:/opt/eulixspace/image
-      - /opt/eulixspace/applet:/opt/eulixspace/applet
-      - /etc/ao-space/meta/admin:/opt/eulixspace/data
-      - /opt/eulixspace-web/space/applet/:/opt/eulixspace-web/space/applet/
-      - /home/eulixspace_link/nginx/conf.d:/etc/nginx/conf.d
-      - /etc/ao-space/certs:/etc/nginx/certs
-      - /home/eulixspace_file_storage/parts:/home/eulixspace/data
-      - ${DATADIR}/aospace
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      SINGLE_DOCKER: "yes"
+
   aonetwork-client:
     container_name: aonetwork-client
     image: ghcr.io/ao-space/gt:client-v2.2.3

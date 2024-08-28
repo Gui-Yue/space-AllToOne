@@ -16,6 +16,8 @@ FROM ubuntu:24.10 as builder1
 
 WORKDIR /work/
 
+COPY . .
+
 ENV LANG C.UTF-8
 
 ENV TZ=Asia/Shanghai \
@@ -24,8 +26,8 @@ ENV TZ=Asia/Shanghai \
 # get all sources
 RUN apt-get update; \
     apt-get install git -y
-ENV http_proxy=http://192.168.31.239:9989
-ENV https_proxy=http://192.168.31.239:9989
+ENV http_proxy=http://192.168.1.79:9989
+ENV https_proxy=http://192.168.1.79:9989
 
 # for space-filepreview
 RUN git clone --branch dev --single-branch https://github.com/ao-space/space-filepreview.git
@@ -116,15 +118,15 @@ RUN mkdir object-binary/space-media-vod; \
 RUN apt-get update -y \
     && apt-get install openjdk-17-jdk -y
 
-RUN export JAVA_VERSION=17; \
-    cd space-gateway; \
-    ./mvnw -B clean verify \
-    -Dquarkus.http.host=0.0.0.0 \
-    -Dmaven.compiler.release=${JAVA_VERSION} \
-    -Dmaven.test.skip=true
+# RUN export JAVA_VERSION=17; \
+#     cd space-gateway; \
+#     ./mvnw -B clean verify \
+#     -Dquarkus.http.host=0.0.0.0 \
+#     -Dmaven.compiler.release=${JAVA_VERSION} \
+#     -Dmaven.test.skip=true
 
 RUN mkdir object-binary/space-gateway; \
-    cp -r space-gateway/target/ object-binary/space-gateway
+    cp -r resource_for_gateway/deployments object-binary/space-gateway
 
 # compile for space-postgresql
 RUN apt-get update && apt-get install -y \
@@ -153,7 +155,7 @@ RUN cd space-web; \
     find . -type f -exec dos2unix {} \;
 
 # About npm_config_proxy need to be removed after test.
-RUN export npm_config_proxy=http://192.168.31.239:9989; \ 
+RUN export npm_config_proxy=http://192.168.1.79:9989; \ 
     cd space-web; \
     npm install && npm run build && npm run buildsingle
 
@@ -215,8 +217,7 @@ RUN apt-get update && apt-get install --no-install-recommends \
         && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder1 /work/object-binary/space-filepreview ./
-RUN ls && pwd
-RUN pip3 install -r ./requirements.txt --break-system-packages
+RUN pip3 install -r ./requirements.txt --break-system-packages -i https://mirrors.aliyun.com/pypi/simple/
 
 # space-aofs
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -259,7 +260,7 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*
 
 # space-media-vod
-RUN apt-get install -y ca-certificates openssl pcre zlib; \
+RUN apt-get install -y ca-certificates openssl; \
     rm -rf /var/lib/apt/lists/*
 
 # space-gateway
@@ -268,7 +269,7 @@ RUN apt-get update \
 
 # space-postgresql
 RUN apt-get update \
-    && apt-get install postgresql postgresql-contrib
+    && apt-get install postgresql postgresql-contrib -y
 RUN ln -s /usr/lib/postgresql/16/bin/pg_ctl /usr/local/bin/pg_ctl
 
 # space-web
@@ -336,11 +337,13 @@ COPY --from=builder1 /work/object-binary/space-agent/supervisord.conf /etc/super
 
 
 # 设置启动脚本
+COPY --from=builder1 /work/start.sh /usr/local/bin/prestart.sh
 COPY --from=builder1 /work/start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/prestart.sh
 RUN chmod +x /usr/local/bin/start.sh
 
 # 暴露必要的端口
 EXPOSE 80 443 5432 6379 3001 2001 8080 5678
 
 # 使用启动脚本作为入口点
-ENTRYPOINT ["/usr/local/bin/start.sh"]
+ENTRYPOINT ["/usr/local/bin/prestart.sh"]
