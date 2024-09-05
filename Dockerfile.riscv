@@ -39,7 +39,7 @@ RUN git clone --branch dev --single-branch https://github.com/ao-space/space-aof
 RUN git clone --branch dev --single-branch https://github.com/ao-space/space-upgrade.git
 
 # for space-agent
-RUN git clone --branch dev --single-branch https://github.com/ao-space/space-agent.git
+RUN git clone --branch ospp --single-branch https://github.com/Gui-Yue/space-agent.git
 
 # for space-space-media-vod
 RUN git clone --branch dev --single-branch https://github.com/ao-space/space-media-vod.git
@@ -207,7 +207,7 @@ RUN apt-get update && apt-get install --no-install-recommends \
 
 COPY --from=builder1 /work/object-binary/space-filepreview ./
 RUN ls && pwd
-RUN pip3 install -r ./requirements.txt --break-system-packages
+RUN pip3 install -r ./requirements.txt --break-system-packages -i https://mirrors.aliyun.com/pypi/simple/
 
 # space-aofs
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -250,7 +250,7 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*
 
 # space-media-vod
-RUN apt-get install -y ca-certificates openssl pcre zlib; \
+RUN apt-get install -y ca-certificates openssl; \
     rm -rf /var/lib/apt/lists/*
 
 # space-gateway
@@ -261,8 +261,9 @@ RUN apt-get update \
 RUN apt-get update \
     && apt-get install postgresql postgresql-contrib -y
 
-RUN ln -s /usr/lib/postgresql/16/bin/pg_ctl /usr/local/bin/pg_ctl
-
+RUN find /usr/lib/postgresql/16/bin -type f -exec ln -s {} /usr/local/bin/ \;
+RUN install --verbose --directory --owner postgres --group postgres --mode 3777 /var/run/postgresql
+    
 # space-web
 RUN apt-get update \
     && apt-get install acl manpages systemd util-linux diffutils x11-xkb-utils -y
@@ -293,6 +294,10 @@ COPY --from=builder2 /usr/lib64/libxkbcommon.so.0.0.0 /usr/lib64/libxkbcommon.so
 COPY --from=builder2 /usr/lib64/libxkbregistry.so.0 /usr/lib64/libxkbregistry.so.0
 COPY --from=builder2 /usr/lib64/libxkbregistry.so.0.0.0 /usr/lib64/libxkbregistry.so.0.0.0
 COPY --from=builder2 /usr/share/licenses/libxkbcommon /usr/share/licenses/libxkbcommon
+
+RUN ln -s /usr/local/openresty/bin/openresty /usr/bin/openresty
+ENV PATH=/usr/local/openresty/bin:$PATH
+
 # install services
 # aospace-redis
 RUN apt-get update -y \
@@ -323,6 +328,7 @@ COPY --chown=1001 --from=builder1 /work/object-binary/space-gateway/deployments 
 COPY --from=builder1 /work/object-binary/space-postgresql/update-pg-password.sh /usr/local/bin
 COPY --from=builder1 /work/object-binary/space-postgresql/eulixspace_pgsql_init.sh /docker-entrypoint-initdb.d/10_eulixspace.sh
 COPY --from=builder1 /work/object-binary/space-postgresql/docker-entrypoint.sh /usr/local/bin
+RUN sed -i '1s|#!/bin/sh|#!/bin/bash|' /usr/local/bin/update-pg-password.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/update-pg-password.sh
 RUN chmod +x /docker-entrypoint-initdb.d/10_eulixspace.sh
@@ -342,7 +348,9 @@ COPY --from=builder1 /work/object-binary/space-agent/aospace /usr/local/bin/aosp
 COPY --from=builder1 /work/object-binary/space-agent/supervisord.conf /etc/supervisor/supervisord.conf
 
 # 设置启动脚本
+COPY --from=builder1 /work/prestart.sh /usr/local/bin/prestart.sh
 COPY --from=builder1 /work/start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/prestart.sh
 RUN chmod +x /usr/local/bin/start.sh
 
 # 暴露必要的端口

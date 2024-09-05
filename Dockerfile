@@ -26,8 +26,8 @@ ENV TZ=Asia/Shanghai \
 # get all sources
 RUN apt-get update; \
     apt-get install git -y
-ENV http_proxy=http://192.168.1.79:9989
-ENV https_proxy=http://192.168.1.79:9989
+ENV http_proxy=http://192.168.31.239:9989
+ENV https_proxy=http://192.168.31.239:9989
 
 # for space-filepreview
 RUN git clone --branch dev --single-branch https://github.com/ao-space/space-filepreview.git
@@ -39,7 +39,7 @@ RUN git clone --branch dev --single-branch https://github.com/ao-space/space-aof
 RUN git clone --branch dev --single-branch https://github.com/ao-space/space-upgrade.git
 
 # for space-agent
-RUN git clone --branch dev --single-branch https://github.com/ao-space/space-agent.git
+RUN git clone --branch ospp --single-branch https://github.com/Gui-Yue/space-agent.git
 
 # for space-space-media-vod
 RUN git clone --branch dev --single-branch https://github.com/ao-space/space-media-vod.git
@@ -155,7 +155,7 @@ RUN cd space-web; \
     find . -type f -exec dos2unix {} \;
 
 # About npm_config_proxy need to be removed after test.
-RUN export npm_config_proxy=http://192.168.1.79:9989; \ 
+RUN export npm_config_proxy=http://192.168.31.239:9989; \ 
     cd space-web; \
     npm install && npm run build && npm run buildsingle
 
@@ -270,7 +270,8 @@ RUN apt-get update \
 # space-postgresql
 RUN apt-get update \
     && apt-get install postgresql postgresql-contrib -y
-RUN ln -s /usr/lib/postgresql/16/bin/pg_ctl /usr/local/bin/pg_ctl
+RUN find /usr/lib/postgresql/16/bin -type f -exec ln -s {} /usr/local/bin/ \;
+RUN install --verbose --directory --owner postgres --group postgres --mode 3777 /var/run/postgresql
 
 # space-web
 RUN apt-get update \
@@ -283,6 +284,7 @@ RUN wget https://openresty.org/download/openresty-1.21.4.4.tar.gz \
     make -j2; \
     make install
 RUN rm -rf openresty-*
+RUN ln -s /usr/local/openresty/bin/openresty /usr/bin/openresty
 ENV PATH=/usr/local/openresty/bin:$PATH
 
 # aospace-redis
@@ -308,15 +310,13 @@ COPY --from=builder1 /work/object-binary/space-media-vod/nginx.conf /usr/local/n
 USER root
 ENV JAVA_OPTS="-Duser.timezone=GMT+8 -Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
 ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
-COPY --chown=1001 --from=builder1 /work/object-binary/space-gateway/target/quarkus-app/lib/ /deployments/lib/
-COPY --chown=1001 --from=builder1 /work/object-binary/space-gateway/target/quarkus-app/*.jar /deployments/
-COPY --chown=1001 --from=builder1 /work/object-binary/space-gateway/target/quarkus-app/app/ /deployments/app/
-COPY --chown=1001 --from=builder1 /work/object-binary/space-gateway/target/quarkus-app/quarkus/ /deployments/quarkus/
+COPY --chown=1001 --from=builder1 /work/object-binary/space-gateway/deployments /deployments
 
 # space-postgresql
 COPY --from=builder1 /work/object-binary/space-postgresql/update-pg-password.sh /usr/local/bin
 COPY --from=builder1 /work/object-binary/space-postgresql/eulixspace_pgsql_init.sh /docker-entrypoint-initdb.d/10_eulixspace.sh
 COPY --from=builder1 /work/object-binary/space-postgresql/docker-entrypoint.sh /usr/local/bin
+RUN sed -i '1s|#!/bin/sh|#!/bin/bash|' /usr/local/bin/update-pg-password.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/update-pg-password.sh
 RUN chmod +x /docker-entrypoint-initdb.d/10_eulixspace.sh
@@ -337,7 +337,7 @@ COPY --from=builder1 /work/object-binary/space-agent/supervisord.conf /etc/super
 
 
 # 设置启动脚本
-COPY --from=builder1 /work/start.sh /usr/local/bin/prestart.sh
+COPY --from=builder1 /work/prestart.sh /usr/local/bin/prestart.sh
 COPY --from=builder1 /work/start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/prestart.sh
 RUN chmod +x /usr/local/bin/start.sh

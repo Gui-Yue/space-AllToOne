@@ -7,24 +7,9 @@ services:
     container_name: aospace-single
     restart: always
     ports:
-      - "127.0.0.1:6379:6379"
-      - "127.0.0.1:2001:2001"
-      - "127.0.0.1:8080:8080"
-      - "12841:80"
-      - "18569:443"
-      - "127.0.0.1:3001:3001"
       - "5678:5678"
-      - "127.0.0.1:5680:5680"
-    environment:
-    # postresql environment setting
-      POSTGRES_PASSWORD: placeholder_mysecretpassword
-      POSTGRES_USER: postgres
-      POSTGRES_FILEDB: file
-      POSTGRES_MAILDB: mail
-      POSTGRES_GATEWAYDB: gateway
-      POSTGRES_ACCOUNTDB: account
-      PGDATA: /data
 
+    environment:
       REDIS_HOST: localhost
       REDIS_PORT: 6379
       REDIS_PASSWORD: "placeholder_mysecretpassword"
@@ -75,17 +60,7 @@ services:
       MAX_INVITE_MEMBER_COUNT: 9
       APP_INTERNET_SERVICE_CONFIG: /etc/ao-space/internet_service_config.json
       APP_RUN_NETWORK_MODE: bridge
-      RUN_NETWORK_MODE: host
       SINGLE_DOCKER: "yes"
+      AOSPACE_DATADIR: /aospace
+      RUN_NETWORK_MODE: "host"
 
-  aonetwork-client:
-    container_name: aonetwork-client
-    image: ghcr.io/ao-space/gt:client-v2.2.3
-    restart: always
-    volumes:
-      - /etc/ao-space/gt:/opt/config
-
-networks:
-  default:
-    external:
-      name: ao-space
