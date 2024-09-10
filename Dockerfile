@@ -26,8 +26,6 @@ ENV TZ=Asia/Shanghai \
 # get all sources
 RUN apt-get update; \
     apt-get install git -y
-ENV http_proxy=http://192.168.31.239:9989
-ENV https_proxy=http://192.168.31.239:9989
 
 # for space-filepreview
 RUN git clone --branch dev --single-branch https://github.com/ao-space/space-filepreview.git
@@ -155,8 +153,7 @@ RUN cd space-web; \
     find . -type f -exec dos2unix {} \;
 
 # About npm_config_proxy need to be removed after test.
-RUN export npm_config_proxy=http://192.168.31.239:9989; \ 
-    cd space-web; \
+RUN cd space-web; \
     npm install && npm run build && npm run buildsingle
 
 RUN mkdir object-binary/space-web; \

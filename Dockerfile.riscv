@@ -26,8 +26,6 @@ ENV TZ=Asia/Shanghai \
 # get all sources
 RUN apt-get update; \
     apt-get install git -y
-ENV http_proxy=http://192.168.31.239:9989
-ENV https_proxy=http://192.168.31.239:9989
 
 # for space-filepreview
 RUN git clone --branch dev --single-branch https://github.com/ao-space/space-filepreview.git
@@ -295,7 +293,6 @@ COPY --from=builder2 /usr/lib64/libxkbregistry.so.0 /usr/lib64/libxkbregistry.so
 COPY --from=builder2 /usr/lib64/libxkbregistry.so.0.0.0 /usr/lib64/libxkbregistry.so.0.0.0
 COPY --from=builder2 /usr/share/licenses/libxkbcommon /usr/share/licenses/libxkbcommon
 
-RUN ln -s /usr/local/openresty/bin/openresty /usr/bin/openresty
 ENV PATH=/usr/local/openresty/bin:$PATH
 
 # install services
@@ -357,4 +354,4 @@ RUN chmod +x /usr/local/bin/start.sh
 EXPOSE 80 443 5432 6379 3001 2001 8080 5678
 
 # 使用启动脚本作为入口点
-ENTRYPOINT ["/usr/local/bin/start.sh"]
+ENTRYPOINT ["/usr/local/bin/prestart.sh"]
